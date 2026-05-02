@@ -5,6 +5,8 @@ import com.codenbugs.adsservice.enums.AdType;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -21,11 +23,13 @@ public class AdPriceEntity {
     private UUID id;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "ad_type", columnDefinition = "ad_type", nullable = false)
+    @Column(name = "ad_type", nullable = false)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private AdType adType;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "period", columnDefinition = "ad_period", nullable = false)
+    @Column(name = "period", nullable = false)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private AdPeriod adPeriod;
 
     @Column(name = "price", nullable = false)
