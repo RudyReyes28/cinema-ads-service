@@ -12,6 +12,9 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -155,5 +158,129 @@ class S3FileStorageServiceTest {
 
     private MockMultipartFile validPdf(String filename) {
         return new MockMultipartFile("file", filename, "application/pdf", "pdf-content".getBytes());
+    }
+
+    // -------------------- Validación de tamaño de imagen > 5MB --------------------
+
+    @Test
+    void uploadFile_imageTooLarge_throws() {
+        byte[] largeContent = new byte[(int) (5 * 1024 * 1024) + 1];
+        MockMultipartFile file = new MockMultipartFile(
+                "file", "photo.jpg", "image/jpeg", largeContent
+        );
+
+        assertThatThrownBy(() -> service.uploadFile(file, "ads/images"))
+                .isInstanceOf(FileStorageException.class)
+                .hasMessageContaining("5 MB");
+    }
+
+// -------------------- Validacion de tamanio de video > 100MB --------------------
+
+    @Test
+    void uploadFile_videoTooLarge_throws() {
+        byte[] largeContent = new byte[(int) (100 * 1024 * 1024) + 1];
+        MockMultipartFile file = new MockMultipartFile(
+                "file", "video.mp4", "video/mp4", largeContent
+        );
+
+        assertThatThrownBy(() -> service.uploadFile(file, "ads/videos"))
+                .isInstanceOf(FileStorageException.class)
+                .hasMessageContaining("100 MB");
+    }
+
+// -------------------- Imagen dentro del limite de 5MB pasa la validacion --------------------
+
+    @Test
+    void uploadFile_imageWithinSizeLimit_succeeds() throws FileStorageException {
+        byte[] content = new byte[(int) (5 * 1024 * 1024) - 1];
+        MockMultipartFile file = new MockMultipartFile(
+                "file", "photo.png", "image/png", content
+        );
+
+        String url = service.uploadFile(file, "ads/images");
+
+        assertThat(url).startsWith("https://test-bucket.s3.us-east-1.amazonaws.com/ads/images/");
+        verify(amazonS3).putObject(any(PutObjectRequest.class));
+    }
+
+// -------------------- Video dentro del limite de 100MB pasa la validacion --------------------
+
+    @Test
+    void uploadFile_videoWithinSizeLimit_succeeds() throws FileStorageException {
+        byte[] content = new byte[1024];
+        MockMultipartFile file = new MockMultipartFile(
+                "file", "video.mp4", "video/mp4", content
+        );
+
+        String url = service.uploadFile(file, "ads/videos");
+
+        assertThat(url).startsWith("https://test-bucket.s3.us-east-1.amazonaws.com/ads/videos/");
+        verify(amazonS3).putObject(any(PutObjectRequest.class));
+    }
+
+// -------------------- IOException al leer el InputStream --------------------
+
+    @Test
+    void uploadFile_ioExceptionOnRead_throws() throws Exception {
+        MultipartFile file = mock(MultipartFile.class);
+        when(file.isEmpty()).thenReturn(false);
+        when(file.getContentType()).thenReturn("image/jpeg");
+        when(file.getSize()).thenReturn(1024L);
+        when(file.getOriginalFilename()).thenReturn("photo.jpg");
+        when(file.getInputStream()).thenThrow(new IOException("disk error"));
+
+        assertThatThrownBy(() -> service.uploadFile(file, "ads/images"))
+                .isInstanceOf(FileStorageException.class)
+                .hasMessageContaining("Failed to read file input stream");
+    }
+
+// -------------------- Tipos de imagen permitidos --------------------
+
+    @Test
+    void uploadFile_jpegAllowed() throws FileStorageException {
+        MockMultipartFile file = new MockMultipartFile(
+                "file", "photo.jpg", "image/jpeg", "content".getBytes()
+        );
+
+        String url = service.uploadFile(file, "ads/images");
+
+        assertThat(url).isNotBlank();
+    }
+
+    @Test
+    void uploadFile_pngAllowed() throws FileStorageException {
+        MockMultipartFile file = new MockMultipartFile(
+                "file", "photo.png", "image/png", "content".getBytes()
+        );
+
+        String url = service.uploadFile(file, "ads/images");
+
+        assertThat(url).isNotBlank();
+    }
+
+// -------------------- Tipos de video permitidos --------------------
+
+    @Test
+    void uploadFile_mp4Allowed() throws FileStorageException {
+        MockMultipartFile file = new MockMultipartFile(
+                "file", "video.mp4", "video/mp4", "content".getBytes()
+        );
+
+        String url = service.uploadFile(file, "ads/videos");
+
+        assertThat(url).isNotBlank();
+    }
+
+// -------------------- Filename null se sanitiza a "file" --------------------
+
+    @Test
+    void uploadFile_nullFilename_sanitizesToFile() throws FileStorageException {
+        MockMultipartFile file = new MockMultipartFile(
+                "file", null, "image/jpeg", "content".getBytes()
+        );
+
+        String url = service.uploadFile(file, "ads/images");
+
+        assertThat(url).contains("ads/images/");
     }
 }
