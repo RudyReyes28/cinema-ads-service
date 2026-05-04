@@ -3,9 +3,11 @@ package com.codenbugs.adsservice.services.ads;
 import com.codenbugs.adsservice.clients.wallet.WalletClient;
 import com.codenbugs.adsservice.dtos.ads.AdRequest;
 import com.codenbugs.adsservice.dtos.ads.AdResponse;
+import com.codenbugs.adsservice.events.AdCreatedEvent;
 import com.codenbugs.adsservice.exceptions.BusinessRuleException;
 import com.codenbugs.adsservice.exceptions.FileStorageException;
 import com.codenbugs.adsservice.exceptions.NotFoundException;
+import com.codenbugs.adsservice.kafka.AdKafkaProducer;
 import com.codenbugs.adsservice.models.AdEntity;
 import com.codenbugs.adsservice.models.AdPriceEntity;
 import com.codenbugs.adsservice.models.AdvertiserEntity;
@@ -28,13 +30,15 @@ public class AdServiceImpl implements AdService {
     private final AdCreatorFactory adCreatorFactory;
     private final WalletClient walletClient;
     private final AdvertiserRepository advertiserRepository;
+    private final AdKafkaProducer adKafkaProducer;
 
-    public AdServiceImpl(AdRepository adRepository, AdPriceRepository adPriceRepository, AdCreatorFactory adCreatorFactory, WalletClient walletClient, AdvertiserRepository advertiserRepository) {
+    public AdServiceImpl(AdRepository adRepository, AdPriceRepository adPriceRepository, AdCreatorFactory adCreatorFactory, WalletClient walletClient, AdvertiserRepository advertiserRepository, AdKafkaProducer adKafkaProducer) {
         this.adRepository = adRepository;
         this.adPriceRepository = adPriceRepository;
         this.adCreatorFactory = adCreatorFactory;
         this.walletClient = walletClient;
         this.advertiserRepository = advertiserRepository;
+        this.adKafkaProducer = adKafkaProducer;
     }
 
     @Override
@@ -70,7 +74,8 @@ public class AdServiceImpl implements AdService {
         adRepository.save(savedAd);
 
         //Aqui mandariamos el mensaje a kafka para que el servicio de reportes lo consuma y genere el reporte del anuncio
-        //TODO: Implementar Kafka Producer para enviar el mensaje de creacion de anuncio
+        AdCreatedEvent event = AdCreatedEvent.fromEntity(savedAd);
+        adKafkaProducer.publishAdCreatedEvent(event);
 
         // Devolvemos la respuesta
         return AdResponse.fromEntity(savedAd);

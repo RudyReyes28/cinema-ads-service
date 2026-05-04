@@ -8,6 +8,7 @@ import com.codenbugs.adsservice.enums.AdType;
 import com.codenbugs.adsservice.exceptions.BusinessRuleException;
 import com.codenbugs.adsservice.exceptions.FileStorageException;
 import com.codenbugs.adsservice.exceptions.NotFoundException;
+import com.codenbugs.adsservice.kafka.AdKafkaProducer;
 import com.codenbugs.adsservice.models.AdEntity;
 import com.codenbugs.adsservice.models.AdPriceEntity;
 import com.codenbugs.adsservice.models.AdvertiserEntity;
@@ -58,6 +59,7 @@ public class AdServiceImplTest {
     @Mock private AdCreator           adCreator;
     @Mock private MultipartFile       image;
     @Mock private MultipartFile       videoFile;
+    @Mock private AdKafkaProducer adKafkaProducer;
 
     @InjectMocks
     private AdServiceImpl adService;
@@ -126,6 +128,7 @@ public class AdServiceImplTest {
                 () -> assertTrue(captor.getAllValues().get(0).isActive()),  // primer save: PENDING
                 () -> assertTrue(captor.getAllValues().get(1).isActive()),   // segundo save: ACTIVE
                 () -> verify(walletClient).deduct(ID_ADVERTISER, PRICE, TOKEN),
+                () -> verify(adKafkaProducer).publishAdCreatedEvent(any()),
                 () -> assertNotNull(result),
                 () -> assertEquals(ID_AD, result.getIdAd())
         );
