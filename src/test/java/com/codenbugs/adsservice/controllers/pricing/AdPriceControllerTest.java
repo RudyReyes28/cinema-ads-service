@@ -47,8 +47,8 @@ public class AdPriceControllerTest {
     private static final AdType      AD_TYPE       = AdType.TEXT;
     private static final AdPeriod    AD_PERIOD     = AdPeriod.ONE_DAY;
 
-    private static final String BASE_URL      = "/api/v1/ad-prices";
-    private static final String BY_ID_URL     = "/api/v1/ad-prices/{idPrice}";
+    private static final String BASE_URL      = "/ads/prices";
+    private static final String BY_ID_URL     = "/ads/prices/{idPrice}";
 
     // ------------------------ Autowired ------------------------
 
