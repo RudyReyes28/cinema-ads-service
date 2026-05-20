@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/ad-prices")
+@RequestMapping("/ads/prices")
 @Tag(name = "Ad Price Management", description = "Endpoints for managing ad pricing")
 public class AdPriceController {
 

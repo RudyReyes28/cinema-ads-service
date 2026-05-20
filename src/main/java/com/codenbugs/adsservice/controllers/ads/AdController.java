@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/ads")
+@RequestMapping("/ads")
 @Tag(name = "Ad Management", description = "Endpoints for managing advertisements")
 public class AdController {
 
