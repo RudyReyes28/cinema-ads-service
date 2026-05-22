@@ -2,6 +2,7 @@ package com.codenbugs.adsservice.services.ads;
 
 import com.codenbugs.adsservice.dtos.ads.AdRequest;
 import com.codenbugs.adsservice.dtos.ads.AdResponse;
+import com.codenbugs.adsservice.dtos.ads.AdvertiserAds;
 import com.codenbugs.adsservice.exceptions.BusinessRuleException;
 import com.codenbugs.adsservice.exceptions.FileStorageException;
 import com.codenbugs.adsservice.exceptions.NotFoundException;
@@ -21,5 +22,7 @@ public interface AdService {
     public AdResponse desactivateAd(UUID adId, UUID advertiserId) throws NotFoundException, BusinessRuleException;
 
     public List<AdResponse> getActiveAds() throws NotFoundException;
+
+    public List<AdvertiserAds> getAllAdvertiser() throws NotFoundException;
 
 }

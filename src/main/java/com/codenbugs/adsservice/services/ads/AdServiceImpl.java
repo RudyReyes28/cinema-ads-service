@@ -3,6 +3,7 @@ package com.codenbugs.adsservice.services.ads;
 import com.codenbugs.adsservice.clients.wallet.WalletClient;
 import com.codenbugs.adsservice.dtos.ads.AdRequest;
 import com.codenbugs.adsservice.dtos.ads.AdResponse;
+import com.codenbugs.adsservice.dtos.ads.AdvertiserAds;
 import com.codenbugs.adsservice.events.AdCreatedEvent;
 import com.codenbugs.adsservice.exceptions.BusinessRuleException;
 import com.codenbugs.adsservice.exceptions.FileStorageException;
@@ -114,5 +115,20 @@ public class AdServiceImpl implements AdService {
                 .stream()
                 .map(AdResponse::fromEntity)
                 .toList();
+    }
+
+    @Override
+    public List<AdvertiserAds> getAllAdvertiser() throws NotFoundException {
+        //Obtenemos todos los anunciantes
+        List<AdvertiserEntity> advertisers = advertiserRepository.findAll();
+
+        //Contamos cuantos anuncios tiene cada anunciante
+        return advertisers.stream()
+                .map(advertiser -> {
+                    int adCount = adRepository.countByAdvertiserId(advertiser.getId());
+                    return new AdvertiserAds(advertiser.getId(), advertiser.getName(), adCount);
+                })
+                .toList();
+
     }
 }

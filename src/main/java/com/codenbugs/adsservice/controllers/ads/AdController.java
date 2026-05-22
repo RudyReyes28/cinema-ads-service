@@ -2,6 +2,7 @@ package com.codenbugs.adsservice.controllers.ads;
 
 import com.codenbugs.adsservice.dtos.ads.AdRequest;
 import com.codenbugs.adsservice.dtos.ads.AdResponse;
+import com.codenbugs.adsservice.dtos.ads.AdvertiserAds;
 import com.codenbugs.adsservice.exceptions.BusinessRuleException;
 import com.codenbugs.adsservice.exceptions.FileStorageException;
 import com.codenbugs.adsservice.exceptions.NotFoundException;
@@ -89,6 +90,30 @@ public class AdController {
         UUID advertiserId = UUID.fromString(jwt.getSubject());
         AdResponse response = adService.createAd(request, image, videoFile, advertiserId, jwt.getTokenValue());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @GetMapping("/advertisers")
+    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
+    @Operation(summary = "Get all advertisers with their ads", description = "Retrieves a list of all advertisers along with their associated ads. This endpoint is only accessible to system administrators.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Advertisers and their ads retrieved successfully"),
+        @ApiResponse(responseCode = "403", description = "Access denied")
+    })
+    public ResponseEntity<List<AdvertiserAds>> getAllAdvertisers() throws NotFoundException {
+        List<AdvertiserAds> response = adService.getAllAdvertiser();
+        return ResponseEntity.ok(response);
+    }
+    @GetMapping("/advertiser/{advertiserId}/ads")
+    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
+    @Operation(summary = "Get ads by advertiser ID", description = "Retrieves a list of ads created by a specific advertiser. This endpoint is only accessible to system administrators.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Ads retrieved successfully"),
+        @ApiResponse(responseCode = "403", description = "Access denied"),
+        @ApiResponse(responseCode = "404", description = "Advertiser not found")
+    })
+    public ResponseEntity<List<AdResponse>> getAdsByAdvertiserId(@PathVariable UUID advertiserId) throws NotFoundException {
+        List<AdResponse> response = adService.getAdsByAdvertiser(advertiserId);
+        return ResponseEntity.ok(response);
     }
 
 }

@@ -14,4 +14,6 @@ public interface AdRepository extends JpaRepository<AdEntity, UUID> {
     List<AdEntity> findByAdvertiserId(UUID advertiserId);
 
     List<AdEntity> findByActiveTrueAndStartDateLessThanEqualAndEndDateGreaterThanEqual(LocalDateTime now1, LocalDateTime now2);
+
+    int countByAdvertiserId(UUID id);
 }
