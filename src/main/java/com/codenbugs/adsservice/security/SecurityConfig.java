@@ -19,8 +19,10 @@ import java.nio.charset.StandardCharsets;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    @Value("${jwt.secret}")
-    private String jwtSecret;
+    //@Value("${jwt.secret}")
+    //private String jwtSecret;
+    @Value("${spring.security.oauth2.resourceserver.jwt.jwk-set-uri}")
+    private String jwksUri;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -35,7 +37,8 @@ public class SecurityConfig {
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**",
                                 "/api-docs/**",
-                                "/actuator/health"
+                                "/actuator/health",
+                                "/ads/active"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
@@ -50,11 +53,9 @@ public class SecurityConfig {
 
     @Bean
     public JwtDecoder jwtDecoder() {
-        SecretKeySpec key = new SecretKeySpec(
-                jwtSecret.getBytes(StandardCharsets.UTF_8),
-                "HmacSHA256"
-        );
-        return NimbusJwtDecoder.withSecretKey(key).build();
+        return NimbusJwtDecoder
+                .withJwkSetUri(jwksUri)
+                .build();
     }
 
     @Bean
