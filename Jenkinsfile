@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         JAVA_HOME = '/usr/lib/jvm/java-21-openjdk-amd64'
-        PATH = "${JAVA_HOME}/bin:${PATH}"
+        PATH = "${JAVA_HOME}/bin:${env.PATH}"
         IMAGE_NAME = 'microservice-ads'
         DEPLOY_DIR = '/opt/microservices/ads-service'
     }
@@ -16,6 +16,8 @@ pipeline {
 
         stage('Test') {
             steps {
+                sh 'java -version'
+                sh 'mvn -version'
                 sh 'mvn test -B'
             }
             post {
