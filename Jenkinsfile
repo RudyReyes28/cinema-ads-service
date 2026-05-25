@@ -2,6 +2,8 @@ pipeline {
     agent any
 
     environment {
+        JAVA_HOME = '/usr/lib/jvm/java-21-openjdk-amd64'
+        PATH = "${JAVA_HOME}/bin:${PATH}"
         IMAGE_NAME = 'microservice-ads'
         DEPLOY_DIR = '/opt/microservices/ads-service'
     }
